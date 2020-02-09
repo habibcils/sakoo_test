@@ -122,7 +122,7 @@ img{
     </div>
     <div class="content-cart">
 
-      <div class="item" v-for="(item) in buyList" :key="item.id">
+      <div class="item" v-for="(item,key) in buyList" :key="key">
         <div v-if="item.store.id != cond" class="head-item d-flex">
           <i class="material-icons">local_grocery_store</i> <h4>{{item.store.name}}</h4>
         </div>
@@ -135,7 +135,7 @@ img{
         </div>
         <div v-else class="body-item d-flex">
           <div class="text-item">
-            <p> + {{item.name}}</p>
+            <p>{{item.name}}</p>
             <label class="cost">Rp. {{formatRupiah(item.price)}}</label>
           </div>
           <img :src="item.stuff.image_url">
@@ -145,7 +145,8 @@ img{
             <span v-if="item.stuff.stock > 0" @click="item.stuff.stock--">-</span>
             <span v-else>-</span>
             <input type="text" :value="item.stuff.stock">
-            <span @click="item.stuff.stock++">+</span>
+            <span v-if="item.stuff.stock == arr[key]">+</span>
+            <span v-else @click="item.stuff.stock++">+</span>
           </div>
           <i class="material-icons">delete</i>
         </div>        
@@ -174,11 +175,9 @@ img{
       return {
         cond: null,
         buyList: null,
-        totalCost: 0
+        totalCost: 0,
+        arr : []
       }
-    },
-    computed: {
-      
     },
     watch: {
       buyList: {
@@ -219,9 +218,11 @@ img{
           res.json()
         )
         .then((data) => {
-          let wow = data.items.sort((a, b) => (a.store.id == b.store.id) ? 1 : -1)
-          this.buyList = wow
-
+          this.buyList = data.items.sort((a, b) => (a.store.id == b.store.id) ? 1 : -1)
+          for (let index = 0; index < this.buyList.length; index++) {
+            this.arr[index] = this.buyList[index].stuff.stock
+          }
+          return this.arr
         }).then(()=>{
           this.getTotal()
         });
